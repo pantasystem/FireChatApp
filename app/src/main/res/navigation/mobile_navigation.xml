@@ -17,11 +17,28 @@
         <action
             android:id="@+id/action_navigation_home_to_roomEditorFragment"
             app:destination="@id/roomEditorFragment" />
+        <action
+            android:id="@+id/action_navigation_home_to_messagesFragment"
+            app:destination="@id/messages_fragment" >
+            <argument
+                android:name="roomId"
+                app:argType="string"
+                />
+        </action>
+
     </fragment>
     <fragment
         android:id="@+id/roomEditorFragment"
         android:name="jp.panta.firechatapp.ui.rooms.RoomEditorFragment"
         android:label="RoomEditorFragment" />
+    <fragment
+        android:id="@+id/messages_fragment"
+        android:name="jp.panta.firechatapp.ui.messages.MessagesFragment"
+        android:label="MessagesFragment" >
+        <argument
+            android:name="roomId"
+            app:argType="string" />
+    </fragment>
 
 
 </navigation>

@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
@@ -25,6 +26,7 @@ class RoomsFragment : Fragment() {
     private val binding: FragmentRoomsBinding
         get() = _binding!!
 
+    private val viewModel: RoomsViewModel by activityViewModels()
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -64,7 +66,11 @@ class RoomsFragment : Fragment() {
                         inflater,
                         parent,
                         false
-                    )
+                    ),
+                    onClick = { v, r ->
+                        val action = RoomsFragmentDirections.actionNavigationHomeToMessagesFragment(roomId = r.id)
+                        v.findNavController().navigate(action)
+                    }
                 )
             }
         }
@@ -72,9 +78,8 @@ class RoomsFragment : Fragment() {
         binding.roomsView.adapter = adapter
         binding.roomsView.layoutManager = LinearLayoutManager(requireContext())
 
-        val viewModel = ViewModelProvider(this)[RoomsViewModel::class.java]
 
-        lifecycleScope.launchWhenResumed {
+        lifecycleScope.launchWhenCreated {
             viewModel.rooms.collect {
                 adapter.submitList(it)
             }
@@ -82,9 +87,12 @@ class RoomsFragment : Fragment() {
     }
 }
 
-class RoomItemViewHolder(private val itemRoomBinding: ItemRoomBinding) : RecyclerView.ViewHolder(itemRoomBinding.root) {
+class RoomItemViewHolder(private val itemRoomBinding: ItemRoomBinding, private val onClick: (view: View, room: Room)->Unit = { _, _ -> }) : RecyclerView.ViewHolder(itemRoomBinding.root) {
 
     fun bind(room: Room) {
         itemRoomBinding.roomName.text = room.name
+        itemRoomBinding.root.setOnClickListener {
+            onClick.invoke(it, room)
+        }
     }
 }

@@ -1,5 +1,6 @@
 package jp.panta.firechatapp.util
 
+import android.util.Log
 import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
@@ -18,10 +19,13 @@ fun CollectionReference.asFlow(): Flow<QuerySnapshot> {
 
     return channelFlow {
         val l = this@asFlow.addSnapshotListener { value, error ->
+            Log.d("asFlow", "value:$value, error:$error")
             if(error != null) {
                 throw error
             }
-            this.trySend(value!!)
+            if(value != null) {
+                this.trySend(value)
+            }
 
         }
         awaitClose {

@@ -1,5 +1,6 @@
 package jp.panta.firechatapp.ui.rooms
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
@@ -27,7 +28,7 @@ class RoomsViewModel : ViewModel(){
         .map {
             it.toObjects(Room::class.java)
         }
-        .shareIn(viewModelScope, started = SharingStarted.Lazily)
+        .shareIn(viewModelScope, started = SharingStarted.Eagerly, replay = 1)
 
 
     suspend fun create(room: Room) {
