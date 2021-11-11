@@ -10,6 +10,7 @@ import jp.panta.firechatapp.util.asFlow
 import jp.panta.firechatapp.util.asSuspend
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 
 class RoomsViewModel : ViewModel(){
@@ -21,8 +22,11 @@ class RoomsViewModel : ViewModel(){
 
 
     @ExperimentalCoroutinesApi
-    private val rooms = db.collection("rooms")
+    val rooms = db.collection("rooms")
         .asFlow()
+        .map {
+            it.toObjects(Room::class.java)
+        }
         .shareIn(viewModelScope, started = SharingStarted.Lazily)
 
 
