@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import jp.panta.firechatapp.models.Message
@@ -15,11 +16,13 @@ import jp.panta.firechatapp.util.asSuspend
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
+import java.util.*
 
 @ExperimentalCoroutinesApi
 class MessagesViewModel(
-    roomId: String
+    private val roomId: String
 ) : ViewModel(){
 
     class Factory(private val roomId: String) : ViewModelProvider.Factory {
@@ -30,9 +33,10 @@ class MessagesViewModel(
 
     val messages = Firebase.firestore.collection("rooms").document(roomId)
         .collection("messages")
-        .asFlow().map {
-            Log.d("MessagesViewModel", "${it.documents.map { it.data }}")
-            it.toObjects(Message::class.java)
+        .orderBy("createdAt")
+        .asFlow().mapNotNull {
+            Log.d("MessagesViewModel", "${it?.documents?.map { it.data }}")
+            it?.toObjects(Message::class.java)
         }.map {
             it.map {  msg ->
                 MessageView(
@@ -52,6 +56,22 @@ class MessagesViewModel(
         .map {
             it?.toObject(Room::class.java)
         }.shareIn(viewModelScope, started = SharingStarted.Eagerly, replay = 1)
+
+    suspend fun create(text: String) {
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        Firebase.firestore.collection("rooms")
+            .document(roomId)
+            .collection("messages")
+            .add(Message(
+                id = "",
+                userId = currentUser!!.uid,
+                text = text,
+                createdAt = Date(),
+                updatedAt = Date(),
+                userRef = Firebase.firestore.collection("users").document(currentUser.uid)
+            )).asSuspend()
+
+    }
 
 
 }

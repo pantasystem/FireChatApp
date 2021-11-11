@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -22,8 +23,11 @@ import jp.panta.firechatapp.SettableTitle
 import jp.panta.firechatapp.databinding.FragmentMessagesBinding
 import jp.panta.firechatapp.databinding.ItemMessageBinding
 import jp.panta.firechatapp.models.MessageView
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 class MessagesFragment : Fragment(){
@@ -90,6 +94,31 @@ class MessagesFragment : Fragment(){
         lifecycleScope.launchWhenResumed {
             messagesViewModel.room.collect {
                 (requireActivity() as? SettableTitle)?.setTitle(it?.name ?: "")
+            }
+        }
+
+        binding.messageTextInputEditText.addTextChangedListener {
+            if(it?.toString().isNullOrBlank()) {
+                binding.messageTextInputEditText.error = "１文字１文字以上入力する必要があります"
+            }
+        }
+
+        binding.sendButton.setOnClickListener {
+            val text = binding.messageTextInputEditText.text?.toString()
+            if(text.isNullOrBlank()) {
+                return@setOnClickListener
+            }
+            lifecycleScope.launch(Dispatchers.IO) {
+                val result = runCatching {
+                    messagesViewModel.create(text)
+                }
+                withContext(Dispatchers.Main) {
+                    result.onSuccess {
+                        binding.messageTextInputEditText.setText("")
+                    }.onFailure {
+
+                    }
+                }
             }
         }
 

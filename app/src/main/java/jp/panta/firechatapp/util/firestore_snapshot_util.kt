@@ -2,10 +2,7 @@ package jp.panta.firechatapp.util
 
 import android.util.Log
 import com.google.android.gms.tasks.Task
-import com.google.firebase.firestore.CollectionReference
-import com.google.firebase.firestore.DocumentReference
-import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.QuerySnapshot
+import com.google.firebase.firestore.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -50,6 +47,25 @@ fun DocumentReference.asFlow(): Flow<DocumentSnapshot?> {
     }
 }
 
+
+@ExperimentalCoroutinesApi
+fun Query.asFlow(): Flow<QuerySnapshot?> {
+
+    return channelFlow {
+
+        val l = this@asFlow.addSnapshotListener { value, error ->
+            if(error != null) {
+                throw error
+            }
+            if(value != null) {
+                this.trySend(value)
+            }
+        }
+        awaitClose {
+            l.remove()
+        }
+    }
+}
 
 suspend fun<T> Task<T>.asSuspend() = suspendCoroutine<T> { continuation ->
     addOnSuccessListener {
