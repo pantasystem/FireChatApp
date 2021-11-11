@@ -8,6 +8,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import jp.panta.firechatapp.models.Message
 import jp.panta.firechatapp.models.MessageView
+import jp.panta.firechatapp.models.Room
 import jp.panta.firechatapp.models.User
 import jp.panta.firechatapp.util.asFlow
 import jp.panta.firechatapp.util.asSuspend
@@ -43,6 +44,13 @@ class MessagesViewModel(
                     user = msg.userRef?.get()?.asSuspend()?.toObject(User::class.java)
                 )
             }
+        }.shareIn(viewModelScope, started = SharingStarted.Eagerly, replay = 1)
+
+
+    val room = Firebase.firestore.collection("rooms").document(roomId)
+        .asFlow()
+        .map {
+            it?.toObject(Room::class.java)
         }.shareIn(viewModelScope, started = SharingStarted.Eagerly, replay = 1)
 
 

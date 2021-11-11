@@ -20,7 +20,7 @@ import jp.panta.firechatapp.models.User
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), SettableTitle {
 
     private lateinit var binding: ActivityMainBinding
 
@@ -83,4 +83,8 @@ class MainActivity : AppCompatActivity() {
     ) { _ ->
 
     }*/
+
+    override fun setTitle(text: String) {
+        supportActionBar?.title = text
+    }
 }

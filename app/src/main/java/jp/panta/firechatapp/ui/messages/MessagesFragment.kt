@@ -7,18 +7,24 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.Priority
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.request.RequestOptions
+import jp.panta.firechatapp.R
+import jp.panta.firechatapp.SettableTitle
 import jp.panta.firechatapp.databinding.FragmentMessagesBinding
 import jp.panta.firechatapp.databinding.ItemMessageBinding
-import jp.panta.firechatapp.models.Message
 import jp.panta.firechatapp.models.MessageView
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
+
 
 class MessagesFragment : Fragment(){
 
@@ -40,6 +46,7 @@ class MessagesFragment : Fragment(){
     @ExperimentalCoroutinesApi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
 
         val messagesViewModel: MessagesViewModel = ViewModelProvider(
             this,
@@ -80,6 +87,11 @@ class MessagesFragment : Fragment(){
                 adapter.submitList(it)
             }
         }
+        lifecycleScope.launchWhenResumed {
+            messagesViewModel.room.collect {
+                (requireActivity() as? SettableTitle)?.setTitle(it?.name ?: "")
+            }
+        }
 
     }
 }
@@ -89,8 +101,20 @@ class MessageViewHolder(
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(message: MessageView) {
+
+        val options: RequestOptions = RequestOptions()
+            .circleCrop()
+            .placeholder(R.drawable.ic_baseline_account_circle_24)
+            .error(R.drawable.ic_baseline_account_circle_24)
+            .diskCacheStrategy(DiskCacheStrategy.ALL)
+            .priority(Priority.HIGH)
         binding.messageText.text = message.text
         binding.usernameView.text = message.user?.username
+
+        Glide.with(binding.avatarIcon)
+            .applyDefaultRequestOptions(options)
+            .load(message.user?.profileUrl ?: "")
+            .into(binding.avatarIcon)
     }
 
 
